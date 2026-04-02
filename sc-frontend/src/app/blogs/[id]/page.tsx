@@ -276,9 +276,19 @@ export default function BlogDetailPage() {
   return (
     <>
       <div className="mb-6 flex flex-col gap-2">
-        <h1 className="font-sans text-2xl font-medium text-neutral-900 md:text-3xl">
-          {blog.title}
-        </h1>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/blogs"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 transition-colors hover:bg-neutral-200"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 text-neutral-600">
+              <path fillRule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clipRule="evenodd" />
+            </svg>
+          </Link>
+          <h1 className="font-sans text-2xl font-medium text-neutral-900 md:text-3xl">
+            {blog.title}
+          </h1>
+        </div>
         <p className="text-sm text-neutral-500">
           {new Date(blog.created_at).toLocaleDateString()}
         </p>

@@ -85,10 +85,10 @@ export const blogApi = {
       token,
     }),
 
-  update: (token: string, id: number, title: string, subtitle: string, content: string) =>
+  update: (token: string, id: number, title: string, subtitle: string, content: string, category: string) =>
     request<Blog>(`/blogs/${id}`, {
       method: "PUT",
-      body: { title, subtitle, content },
+      body: { title, subtitle, content, category },
       token,
     }),
 

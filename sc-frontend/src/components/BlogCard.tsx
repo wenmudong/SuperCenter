@@ -82,7 +82,7 @@ export default function BlogCard({
 
           {/* 内容区（可点击） */}
           <Link href={href} className="cursor-alias p-5">
-            <h3 className="font-serif text-3xl font-light leading-tight">
+            <h3 className="text-3xl font-light leading-tight">
               {blog.title}
             </h3>
             <span className="mt-2 mb-4 block text-sm tracking-tight text-neutral-400">
