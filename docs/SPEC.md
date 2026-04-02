@@ -16,7 +16,8 @@
 | 工具 | uv | 包管理与项目工具 |
 | ORM | SQLModel | Pydantic + SQLAlchemy |
 | 数据库 | SQLite | 开发阶段；生产可切换 PostgreSQL |
-| 验证 | Pydantic | 请求/响应数据校验 |
+| 验证 | Pydantic + JWT | 请求/响应数据校验、Token 认证 |
+| 密码哈希 | argon2-cffi | 安全密码哈希 |
 
 ### 前端
 
@@ -32,45 +33,128 @@
 - 前端：Vercel / Cloudflare Pages
 - 后端：Railway / Fly.io / VPS
 
+## 用户系统
+
+### 角色权限
+
+| 角色 | 说明 | 权限 |
+|------|------|------|
+| `blogger` | 博主 | 发布/管理博客、增删改查评论、个人信息管理 |
+| `user` | 普通用户 | 评论、修改个人信息 |
+| `admin` | 管理员 | 功能待定 |
+
+### 预置账号
+
+| 用户名 | 密码 | 角色 |
+|--------|------|------|
+| `wenmudong` | `wenmudong.hwd` | blogger |
+| `admin` | `admin.hwd` | admin |
+
 ## 项目结构
 
 > 各子项目的详细结构说明见对应的 README 文件。
 
 ```
-supercenter/
+SuperCenter/
 ├── docs/
 │   ├── SPEC.md              # 项目总览文档
 │   ├── commands.md          # 启动命令汇总
-│   └── frontend-structure.md # 前端结构与样式
-├── sc-backend/               # 后端服务（详见 sc-backend/README.md）
+│   ├── frontend-structure.md # 前端结构与样式
+│   └── plans/               # 实施计划
+├── sc-backend/               # 后端服务
 │   ├── app/
-│   │   ├── __init__.py      # 包初始化
 │   │   ├── main.py          # FastAPI 入口
 │   │   ├── config.py        # 配置管理
 │   │   ├── database.py      # 数据库引擎
-│   │   ├── routers/
-│   │   │   └── api.py       # API 路由
-│   │   └── models/
-│   │       └── __init__.py  # 数据模型
+│   │   ├── models/          # 数据模型
+│   │   │   ├── user.py       # 用户模型
+│   │   │   ├── blog.py       # 博客模型
+│   │   │   └── comment.py    # 评论模型
+│   │   ├── routers/          # API 路由
+│   │   │   ├── auth.py       # 认证路由
+│   │   │   ├── users.py      # 用户路由
+│   │   │   ├── blogs.py      # 博客路由
+│   │   │   ├── comments.py   # 评论路由
+│   │   │   └── upload.py     # 上传路由
+│   │   └── schemas/          # Pydantic Schemas
 │   ├── data/                 # 数据库文件目录
-│   │   └── supercenter.db   # SQLite 数据库
-│   ├── pyproject.toml
-│   └── .venv/
-└── sc-frontend/              # 前端应用（详见 sc-frontend/README.md）
+│   ├── scripts/              # 脚本
+│   │   └── seed_db.py       # 数据库种子脚本
+│   └── pyproject.toml
+└── sc-frontend/              # 前端应用
     ├── src/
     │   ├── app/              # Next.js App Router
-    │   │   ├── page.tsx      # 首页
+    │   │   ├── page.tsx      # 首页 (/)
     │   │   ├── layout.tsx    # 根布局
-    │   │   └── globals.css   # 全局样式
-    │   └── components/       # React 组件
-    │       ├── Navbar.tsx    # 导航栏
-    │       ├── BookCard.tsx  # 书籍卡片
-    │       └── PageHeader.tsx # 页面标题
-    ├── public/               # 静态资源
-    ├── package.json
-    ├── tailwind.config.ts
-    └── next.config.ts
+    │   │   ├── globals.css   # 全局样式
+    │   │   ├── auth/
+    │   │   │   ├── login/    # 登录页 (/auth/login)
+    │   │   │   └── register/ # 注册页 (/auth/register)
+    │   │   ├── profile/      # 个人中心 (/profile)
+    │   │   ├── blogs/
+    │   │   │   ├── page.tsx          # 博客列表 (/blogs)
+    │   │   │   └── [id]/
+    │   │   │       └── page.tsx      # 博客详情 (/blogs/[id])
+    │   │   ├── projects/     # Projects 页
+    │   │   ├── hobbies/      # Hobbies 页
+    │   │   └── tools/        # Tools 页
+    │   ├── components/
+    │   │   ├── Navbar.tsx           # 导航栏
+    │   │   ├── FloatingAvatar.tsx   # 左下角悬浮头像
+    │   │   ├── PageHeader.tsx       # 页面标题
+    │   │   └── Card.tsx            # 项目卡片
+    │   ├── contexts/
+    │   │   └── AuthContext.tsx      # 认证状态管理
+    │   ├── services/
+    │   │   └── api.ts              # API 服务层
+    │   └── types/
+    │       └── index.ts             # TypeScript 类型定义
+    ├── public/
+    │   ├── uploads/avatars/          # 头像上传目录
+    │   └── fonts/                   # 字体文件
+    └── package.json
 ```
+
+## API 路由
+
+### 认证 API
+
+| 方法 | 路由 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /api/auth/register | 用户注册 | 否 |
+| POST | /api/auth/login | 用户登录 | 否 |
+| GET | /api/auth/me | 获取当前用户 | 是 |
+
+### 用户 API
+
+| 方法 | 路由 | 说明 | 认证 |
+|------|------|------|------|
+| GET | /api/users/me | 获取个人信息 | 是 |
+| PATCH | /api/users/me | 更新个人信息 | 是 |
+
+### 上传 API
+
+| 方法 | 路由 | 说明 | 认证 |
+|------|------|------|------|
+| POST | /api/upload/avatar | 上传头像 | 是 |
+
+### 博客 API
+
+| 方法 | 路由 | 说明 | 认证 |
+|------|------|------|------|
+| GET | /api/blogs | 获取博客列表 | 否 |
+| POST | /api/blogs | 创建博客 | 是 (blogger) |
+| GET | /api/blogs/{id} | 获取博客详情 | 否 |
+| PUT | /api/blogs/{id} | 更新博客 | 是 (blogger) |
+| DELETE | /api/blogs/{id} | 删除博客 | 是 (blogger) |
+
+### 评论 API
+
+| 方法 | 路由 | 说明 | 认证 |
+|------|------|------|------|
+| GET | /api/blogs/{id}/comments | 获取评论列表 | 否 |
+| POST | /api/blogs/{id}/comments | 发布评论 | 是 |
+| DELETE | /api/blogs/{id}/comments/{comment_id} | 删除评论 | 是 |
 
 ## 启动方式
 
@@ -80,9 +164,9 @@ supercenter/
 
 ```bash
 cd sc-backend
+.venv\Scripts\activate
 uv sync
-uv run sc.py             # 端口 8000
-uv run sc.py 9000         # 指定端口
+uvicorn app.main:app --reload --port 8000
 ```
 
 ### 前端
@@ -107,6 +191,6 @@ npm run dev
 - 后端启动时自动创建 SQLite 数据库和表
 - 文档随项目更新同步维护
 - 各子项目详细文档：
-  - 后端详细文档：`sc-backend/README.md`
+  - 后端详细文档：`sc-backend/CLAUDE.md`
   - 前端详细文档：`sc-frontend/README.md`
   - 前端结构与样式：`docs/frontend-structure.md`

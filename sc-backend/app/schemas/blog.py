@@ -1,0 +1,45 @@
+from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import datetime
+
+
+class BlogBase(BaseModel):
+    """博客基础 schema"""
+    title: str = Field(..., min_length=1, max_length=200)
+    content: str = Field(..., min_length=1)
+
+
+class BlogCreate(BlogBase):
+    """创建博客请求"""
+    pass
+
+
+class BlogUpdate(BaseModel):
+    """更新博客请求"""
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    content: Optional[str] = Field(None, min_length=1)
+
+
+class BlogResponse(BlogBase):
+    """博客响应"""
+    id: int
+    author_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class BlogListResponse(BaseModel):
+    """博客列表响应（包含作者信息）"""
+    id: int
+    title: str
+    author_id: int
+    author_username: str
+    created_at: datetime
+    updated_at: datetime
+    comment_count: int = 0
+
+    class Config:
+        from_attributes = True

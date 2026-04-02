@@ -1,15 +1,142 @@
 // 后端 API 服务层
+import type { User, Token, Blog, BlogListItem, CommentTree } from "@/types";
+
 const API_BASE = "http://localhost:8000/api";
 
-async function request<T>(endpoint: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`);
-  if (!res.ok) throw new Error(`API Error: ${res.status}`);
+interface RequestOptions {
+  method?: string;
+  body?: unknown;
+  token?: string | null;
+}
+
+async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+  const { method = "GET", body, token } = options;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "Request failed" }));
+    throw new Error(error.detail || `API Error: ${res.status}`);
+  }
+
+  // 204 No Content
+  if (res.status === 204) {
+    return {} as T;
+  }
+
   return res.json();
 }
 
-export const api = {
-  projects: {
-    list: () => request<any>("/projects"),
-    get: (id: string) => request<any>(`/projects/${id}`),
+// Auth API
+export const authApi = {
+  register: (username: string, email: string, password: string) =>
+    request<Token>("/auth/register", {
+      method: "POST",
+      body: { username, email, password },
+    }),
+
+  login: (username: string, password: string) =>
+    request<Token>("/auth/login", {
+      method: "POST",
+      body: { username, password },
+    }),
+
+  getMe: (token: string) =>
+    request<User>("/auth/me", { token }),
+};
+
+// User API
+export const userApi = {
+  getMe: (token: string) =>
+    request<User>("/users/me", { token }),
+
+  updateMe: (token: string, data: { email?: string; avatar_url?: string }) =>
+    request<User>("/users/me", {
+      method: "PATCH",
+      body: data,
+      token,
+    }),
+};
+
+// Blog API
+export const blogApi = {
+  list: () =>
+    request<BlogListItem[]>("/blogs"),
+
+  get: (id: number) =>
+    request<Blog>(`/blogs/${id}`),
+
+  create: (token: string, title: string, content: string) =>
+    request<Blog>("/blogs", {
+      method: "POST",
+      body: { title, content },
+      token,
+    }),
+
+  update: (token: string, id: number, title: string, content: string) =>
+    request<Blog>(`/blogs/${id}`, {
+      method: "PUT",
+      body: { title, content },
+      token,
+    }),
+
+  delete: (token: string, id: number) =>
+    request<void>(`/blogs/${id}`, {
+      method: "DELETE",
+      token,
+    }),
+};
+
+// Comment API
+export const commentApi = {
+  list: (blogId: number) =>
+    request<CommentTree[]>(`/blogs/${blogId}/comments`),
+
+  create: (token: string, blogId: number, content: string, parentId?: number) =>
+    request<CommentTree>(`/blogs/${blogId}/comments`, {
+      method: "POST",
+      body: { content, parent_id: parentId },
+      token,
+    }),
+
+  delete: (token: string, blogId: number, commentId: number) =>
+    request<void>(`/blogs/${blogId}/comments/${commentId}`, {
+      method: "DELETE",
+      token,
+    }),
+};
+
+// Upload API
+export const uploadApi = {
+  uploadAvatar: async (token: string, file: File): Promise<{ url: string }> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${API_BASE}/upload/avatar`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: "Upload failed" }));
+      throw new Error(error.detail || `Upload Error: ${res.status}`);
+    }
+
+    return res.json();
   },
 };

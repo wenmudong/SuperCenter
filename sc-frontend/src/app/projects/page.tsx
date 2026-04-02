@@ -7,7 +7,7 @@ const mockProjects: Project[] = [
   {
     id: "1",
     title: "SuperCenter",
-    description: "个人网站前后端分离项目",
+    description: "个人网站项目",
     status: "ACTIVE",
     coverUrl: "/images/project_1.jpg",
     linkUrl: "https://github.com",

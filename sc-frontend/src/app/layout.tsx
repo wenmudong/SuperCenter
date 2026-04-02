@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import FloatingAvatar from "@/components/FloatingAvatar";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,10 +31,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <div className="mx-auto w-full max-w-screen-sm px-8 md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-2xl">
-          <Navbar />
-          <main>{children}</main>
-        </div>
+        <AuthProvider>
+          <div className="mx-auto w-full max-w-screen-sm px-8 md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-2xl">
+            <Navbar />
+            <main>{children}</main>
+          </div>
+          {/* 悬浮头像放在容器外面，完全脱离文档流 */}
+          <FloatingAvatar />
+        </AuthProvider>
       </body>
     </html>
   );
