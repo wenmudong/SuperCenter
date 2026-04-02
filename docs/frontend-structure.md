@@ -5,18 +5,19 @@
 ```
 <body>
   └── <div> — 居中容器
-        ├── <Navbar /> — 粘性顶部导航
-        └── <main>
+        ├── <Navbar /> — 顶部导航
+        └── <main class="pb-8">
               └── {children} — 页面内容
-                    └── <PageHeader /> — 页面标题
-                    └── <div.grid> — 内容网格
-                          └── <Card /> — 项目卡片
+                    └── <PageHeader /> — 页面标题（可选）
+                    └── <EmptyState /> — 空状态（列表为空时）
+                    └── <Card /> — 项目卡片
 ```
 
 ### 居中容器
 
 - 类名：`mx-auto w-full max-w-screen-sm px-8 md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-2xl`
 - 作用：响应式最大宽度 + 水平居中 + 两侧留白
+- 全局底部留白 32px（`pb-8`）
 
 | 断点 | 最大宽度 |
 |------|---------|
@@ -30,36 +31,91 @@
 ```
 src/
 ├── app/                    # App Router 页面
-│   ├── page.tsx           # 首页（Projects 页面）
+│   ├── page.tsx           # 首页
 │   ├── layout.tsx         # 根布局
-│   └── globals.css
+│   ├── globals.css        # 全局样式
+│   ├── auth/              # 认证页面
+│   │   ├── login/
+│   │   └── register/
+│   ├── profile/           # 个人中心
+│   ├── blogs/             # 博客
+│   │   ├── page.tsx       # 博客列表
+│   │   ├── new/           # 创建博客
+│   │   └── [id]/          # 博客详情
+│   ├── projects/          # Projects 页
+│   ├── hobbies/           # Hobbies 页
+│   └── tools/             # Tools 页
 ├── components/             # 全局通用组件
 │   ├── Navbar.tsx         # 导航栏
+│   ├── FloatingAvatar.tsx  # 左下角悬浮头像
 │   ├── PageHeader.tsx     # 页面标题
-│   └── Card.tsx           # 通用卡片组件
-├── features/               # 业务模块（按功能组织）
-│   └── projects/          # Projects 模块
-│       ├── api/           # API 调用
-│       │   └── projects.ts
-│       └── hooks/         # 模块 hooks
-│           └── useProjects.ts
-├── services/               # API 服务层
+│   ├── Card.tsx           # 通用卡片组件
+│   ├── EmptyState.tsx     # 空状态组件
+│   ├── Toast.tsx          # 提示组件
+│   ├── ConfirmDialog.tsx  # 确认弹窗
+│   └── Providers.tsx       # 全局 Provider 组合
+├── contexts/              # React Context
+│   └── AuthContext.tsx    # 认证状态管理
+├── services/              # API 服务层
 │   └── api.ts
-├── types/                  # TypeScript 类型定义
-│   └── index.ts
-└── lib/                    # 工具函数（如有）
+└── types/                # TypeScript 类型定义
+    └── index.ts
 ```
 
-### 目录说明
-
-| 目录 | 用途 |
-|------|------|
-| `features/` | 按业务模块组织，后续可扩展 blogs、hobbies、tools |
-| `services/` | 统一封装 API 调用，集中管理后端接口 |
-| `types/` | 类型定义，确保前后端类型一致 |
-| `components/` | 全局通用组件，不依赖业务逻辑 |
-
 ## 组件列表
+
+### FloatingAvatar
+
+左下角悬浮头像组件。
+
+| 状态 | 行为 |
+|------|------|
+| 未登录 | 显示登录入口 |
+| 已登录 | 左键进入个人页，右键显示菜单 |
+| 菜单 | 用户名、角色、Profile、Logout |
+
+特效：呼吸动画（轻微放大缩小）
+
+### Toast
+
+顶部居中弹出提示组件。
+
+| 类型 | 样式 |
+|------|------|
+| success | 绿色背景 |
+| error | 红色背景 |
+| info | 蓝色背景 |
+
+自动 3 秒后消失。
+
+### ConfirmDialog
+
+居中确认弹窗组件。
+
+- 带遮罩背景
+- 可自定义标题、信息、按钮文字
+- 确认按钮支持自定义样式
+
+### EmptyState
+
+空状态组件。
+
+- 居中大号文字
+- 彩虹渐变色（红→黄→绿→蓝→紫）
+
+### PageHeader
+
+页面标题组件。
+
+```tsx
+interface PageHeaderProps {
+  title?: string;          // 大标题（可选）
+  description?: string;     // 描述文字（可选）
+  children?: ReactNode;   // 自定义内容（可选）
+}
+```
+
+全为空时不渲染任何内容。
 
 ### Card
 
@@ -90,67 +146,27 @@ interface CardProps {
 - 悬停：图片旋转 -3° + 放大 1.1 倍
 - 背景色变深
 
-### PageHeader
+## 认证系统
 
-页面标题组件。
+使用 `AuthContext` 管理认证状态：
 
-**Props**：
 ```tsx
-interface PageHeaderProps {
-  title: string;          // 大标题
-  description?: string;   // 描述文字
-}
+const { user, token, login, register, logout, updateUser } = useAuth();
 ```
 
-### Navbar
+- Token 存储在 localStorage，有效期 7 天
+- 页面刷新自动验证 Token 有效性
+- 过期或无效时自动清除并跳转首页
 
-导航栏组件，Chester 风格。
-
-| 功能 | 说明 |
-|------|------|
-| 左侧胶囊 | 滑动指示器跟随当前选中项 |
-| 菜单项 | Wenmudong、Blogs、Projects、Hobbies、Tools |
-| 右侧链接 | Github |
-| 交互 | 点击切换 activeIndex，指示器平滑移动 |
-
-## 后端对接
-
-### API 服务层
+## API 服务层
 
 `services/api.ts` — 统一封装 API 请求：
 
-```tsx
-const API_BASE = "http://localhost:8000/api";
-
-async function request<T>(endpoint: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`);
-  if (!res.ok) throw new Error(`API Error: ${res.status}`);
-  return res.json();
-}
-
-export const api = {
-  projects: {
-    list: () => request<Project[]>("/projects"),
-    get: (id: string) => request<Project>(`/projects/${id}`),
-  },
-};
-```
-
-### 类型定义
-
-`types/index.ts` — 定义前后端共享类型：
-
-```tsx
-export interface Project {
-  id: string;
-  title: string;
-  description: string;
-  status: "ACTIVE" | "COMPLETED" | "PLANNING";
-  coverUrl?: string;
-  linkUrl?: string;
-  category?: string;
-}
-```
+- `authApi`: 注册、登录、获取当前用户
+- `userApi`: 获取/更新个人信息
+- `blogApi`: 博客 CRUD
+- `commentApi`: 评论 CRUD
+- `uploadApi`: 头像上传
 
 ## 技术栈
 
@@ -160,6 +176,7 @@ export interface Project {
 | 语言 | TypeScript |
 | 样式 | Tailwind CSS |
 | 字体 | Geist Sans + Geist Mono |
+| MD 编辑器 | @uiw/react-md-editor |
 
 ## 响应式断点
 

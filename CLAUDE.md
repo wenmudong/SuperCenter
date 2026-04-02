@@ -41,6 +41,8 @@ SuperCenter 个人网站，前后端分离架构。
 cd sc-backend
 uv sync                  # 安装/更新依赖
 uv run uvicorn app.main:app --reload --port 8000   # 启动开发服务器
+python -m scripts.migrate_add_subtitle   # 添加 subtitle 列
+python -m scripts.migrate_add_is_deleted  # 添加软删除列
 ```
 
 ### 前端
@@ -66,7 +68,7 @@ npm run build            # 生产构建
 - **入口**：`app/main.py` — lifespan 管理（启动创建数据库表）、路由挂载、CORS 配置
 - **配置**：`app/config.py` — `Settings` 类从 `.env` 读取
 - **数据库**：`app/database.py` — 引擎创建，`data/` 目录存放 `.db` 文件
-- **路由**：`app/routers/api.py` — API 端点定义，前缀 `/api`
+- **路由**：`app/routers/` — 各模块路由定义
 - **模型**：`app/models/` — SQLModel 模型定义数据库表结构
 
 ### 前后端通信
@@ -81,4 +83,4 @@ npm run build            # 生产构建
 - **数据库文件**：统一存放在 `sc-backend/data/` 目录，已在 `.gitignore` 中忽略
 - **API 规范**：RESTful 风格
 - **后端初始化**：启动时自动调用 `create_db_and_tables()` 创建表
-
+- **软删除**：博客使用软删除机制（is_deleted 标记），不会真正从数据库删除

@@ -41,6 +41,7 @@ def list_blogs(
                 subtitle=blog.subtitle,
                 author_id=blog.author_id,
                 author_username=author_username,
+                category=blog.category,
                 created_at=blog.created_at,
                 updated_at=blog.updated_at,
                 comment_count=comment_count,
@@ -61,6 +62,7 @@ def create_blog(
             title=data.title,
             subtitle=data.subtitle,
             content=data.content,
+            category=data.category,
         )
         session.add(blog)
         session.commit()
@@ -111,6 +113,8 @@ def update_blog(
             blog.subtitle = data.subtitle
         if data.content is not None:
             blog.content = data.content
+        if data.category is not None:
+            blog.category = data.category
 
         session.add(blog)
         session.commit()

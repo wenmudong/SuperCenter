@@ -1,5 +1,5 @@
 import PageHeader from "@/components/PageHeader";
-import Card from "@/components/Card";
+import ProjectCard from "@/components/ProjectCard";
 import { Project } from "@/types";
 
 // TODO: 后端对接后替换为 API 调用
@@ -41,7 +41,7 @@ export default function Projects() {
       />
       <div className="grid grid-cols-1 sm:grid-flow-row-dense sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {projects.map((project) => (
-          <Card key={project.id} {...project} />
+          <ProjectCard key={project.id} {...project} />
         ))}
       </div>
     </>

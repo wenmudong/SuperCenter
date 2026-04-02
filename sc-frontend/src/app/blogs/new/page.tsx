@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import PageHeader from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { blogApi } from "@/services/api";
+import type { BlogCategory } from "@/types";
 
 // 动态导入 MD 编辑器，避免 SSR 问题
 const MDEditor = dynamic(
@@ -14,12 +15,20 @@ const MDEditor = dynamic(
   { ssr: false }
 );
 
+const BLOG_CATEGORIES: { value: BlogCategory; label: string }[] = [
+  { value: "Tech", label: "Tech" },
+  { value: "Emotion", label: "Emotion" },
+  { value: "Diary", label: "Diary" },
+  { value: "Question", label: "Question" },
+];
+
 export default function NewBlogPage() {
   const { user, token, isLoading } = useAuth();
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
+  const [category, setCategory] = useState<BlogCategory>("Diary");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,7 +49,7 @@ export default function NewBlogPage() {
     setError("");
 
     try {
-      await blogApi.create(token, title.trim(), subtitle.trim() || undefined, content.trim());
+      await blogApi.create(token, title.trim(), subtitle.trim() || undefined, content.trim(), category);
       router.push("/blogs");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create blog");
@@ -99,6 +108,24 @@ export default function NewBlogPage() {
               className="w-full rounded border border-neutral-300 px-3 py-2 font-sans focus:border-blue-500 focus:outline-none"
               placeholder="Brief description (optional)"
             />
+          </div>
+
+          <div>
+            <label htmlFor="category" className="mb-1 block text-sm text-neutral-600">
+              Category
+            </label>
+            <select
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as BlogCategory)}
+              className="w-full rounded border border-neutral-300 px-3 py-2 font-sans focus:border-blue-500 focus:outline-none"
+            >
+              {BLOG_CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

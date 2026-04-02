@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import BlogCard from "@/components/BlogCard";
 import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/contexts/AuthContext";
 import { blogApi } from "@/services/api";
@@ -22,10 +23,22 @@ export default function BlogsPage() {
 
   return (
     <>
-      <PageHeader
-        title="blogs."
-        description="My thoughts and writings."
-      />
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="blogs."
+          description="My thoughts and writings."
+        />
+        {user?.role === "blogger" && blogs.length > 0 && (
+          <Link
+            href="/blogs/new"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-white/30 backdrop-blur-sm transition-colors hover:border-neutral-400 hover:bg-white/40 md:h-16 md:w-16"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-6 w-6 text-neutral-500">
+              <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+            </svg>
+          </Link>
+        )}
+      </div>
 
       {isLoading ? (
         <p className="text-neutral-500">Loading...</p>
@@ -47,23 +60,13 @@ export default function BlogsPage() {
           )}
         </>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-flow-row-dense sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {blogs.map((blog) => (
-            <Link
+            <BlogCard
               key={blog.id}
-              href={`/blogs/${blog.id}`}
-              className="block rounded-lg border border-neutral-200 bg-white/70 p-4 transition-colors hover:bg-white/90"
-            >
-              <h3 className="text-lg font-medium">{blog.title}</h3>
-              {blog.subtitle && (
-                <p className="mt-1 text-sm text-neutral-500">{blog.subtitle}</p>
-              )}
-              <div className="mt-2 flex items-center gap-4 text-sm text-neutral-500">
-                <span>{blog.author_username}</span>
-                <span>{new Date(blog.created_at).toLocaleDateString()}</span>
-                <span>{blog.comment_count} comments</span>
-              </div>
-            </Link>
+              blog={blog}
+              wide={Math.random() < 0.25}
+            />
           ))}
         </div>
       )}

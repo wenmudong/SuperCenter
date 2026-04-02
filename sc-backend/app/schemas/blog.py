@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
+
+BLOG_CATEGORIES = ["Tech", "Emotion", "Diary", "Question"]
 
 
 class BlogBase(BaseModel):
@@ -8,6 +10,7 @@ class BlogBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     subtitle: Optional[str] = Field(None, max_length=500)
     content: str = Field(..., min_length=1)
+    category: Literal["Tech", "Emotion", "Diary", "Question"] = "Diary"
 
 
 class BlogCreate(BlogBase):
@@ -20,6 +23,7 @@ class BlogUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     subtitle: Optional[str] = Field(None, max_length=500)
     content: Optional[str] = Field(None, min_length=1)
+    category: Optional[Literal["Tech", "Emotion", "Diary", "Question"]] = None
 
 
 class BlogResponse(BlogBase):
@@ -40,6 +44,7 @@ class BlogListResponse(BaseModel):
     subtitle: Optional[str] = None
     author_id: int
     author_username: str
+    category: str = "Diary"
     created_at: datetime
     updated_at: datetime
     comment_count: int = 0

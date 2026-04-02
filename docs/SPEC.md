@@ -27,6 +27,7 @@
 | UI | Tailwind CSS | 原子化 CSS |
 | 语言 | TypeScript | 类型安全 |
 | 包管理 | npm | |
+| MD 编辑器 | @uiw/react-md-editor | Markdown 编辑器 |
 
 ### 部署（预留）
 
@@ -52,8 +53,6 @@
 
 ## 项目结构
 
-> 各子项目的详细结构说明见对应的 README 文件。
-
 ```
 SuperCenter/
 ├── docs/
@@ -68,7 +67,7 @@ SuperCenter/
 │   │   ├── database.py      # 数据库引擎
 │   │   ├── models/          # 数据模型
 │   │   │   ├── user.py       # 用户模型
-│   │   │   ├── blog.py       # 博客模型
+│   │   │   ├── blog.py       # 博客模型（含软删除）
 │   │   │   └── comment.py    # 评论模型
 │   │   ├── routers/          # API 路由
 │   │   │   ├── auth.py       # 认证路由
@@ -76,10 +75,14 @@ SuperCenter/
 │   │   │   ├── blogs.py      # 博客路由
 │   │   │   ├── comments.py   # 评论路由
 │   │   │   └── upload.py     # 上传路由
-│   │   └── schemas/          # Pydantic Schemas
+│   │   ├── schemas/          # Pydantic Schemas
+│   │   └── middleware/        # 中间件
+│   │       └── auth.py       # JWT 认证中间件
 │   ├── data/                 # 数据库文件目录
 │   ├── scripts/              # 脚本
-│   │   └── seed_db.py       # 数据库种子脚本
+│   │   ├── seed_db.py       # 数据库种子脚本
+│   │   ├── migrate_add_subtitle.py  # 添加 subtitle 列
+│   │   └── migrate_add_is_deleted.py # 添加软删除列
 │   └── pyproject.toml
 └── sc-frontend/              # 前端应用
     ├── src/
@@ -93,6 +96,8 @@ SuperCenter/
     │   │   ├── profile/      # 个人中心 (/profile)
     │   │   ├── blogs/
     │   │   │   ├── page.tsx          # 博客列表 (/blogs)
+    │   │   │   ├── new/
+    │   │   │   │   └── page.tsx      # 创建博客 (/blogs/new)
     │   │   │   └── [id]/
     │   │   │       └── page.tsx      # 博客详情 (/blogs/[id])
     │   │   ├── projects/     # Projects 页
@@ -100,11 +105,15 @@ SuperCenter/
     │   │   └── tools/        # Tools 页
     │   ├── components/
     │   │   ├── Navbar.tsx           # 导航栏
-    │   │   ├── FloatingAvatar.tsx   # 左下角悬浮头像
+    │   │   ├── FloatingAvatar.tsx   # 左下角悬浮头像（呼吸动画、右键菜单）
     │   │   ├── PageHeader.tsx       # 页面标题
-    │   │   └── Card.tsx            # 项目卡片
+    │   │   ├── Card.tsx            # 项目卡片
+    │   │   ├── EmptyState.tsx      # 空状态组件（彩虹渐变）
+    │   │   ├── Toast.tsx           # 提示组件（成功/错误/信息）
+    │   │   ├── ConfirmDialog.tsx   # 确认弹窗组件
+    │   │   └── Providers.tsx        # 全局 Provider 组合
     │   ├── contexts/
-    │   │   └── AuthContext.tsx      # 认证状态管理
+    │   │   └── AuthContext.tsx     # 认证状态管理
     │   ├── services/
     │   │   └── api.ts              # API 服务层
     │   └── types/
@@ -114,6 +123,48 @@ SuperCenter/
     │   └── fonts/                   # 字体文件
     └── package.json
 ```
+
+## 数据模型
+
+### User（用户）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | int | 主键 |
+| username | str | 用户名（唯一，5-16位字母/数字/下划线） |
+| email | str | 邮箱（唯一） |
+| password_hash | str | Argon2 哈希密码 |
+| avatar_url | str | 头像 URL（base64 data URL） |
+| role | str | 角色：blogger/user/admin |
+| created_at | datetime | 创建时间 |
+| updated_at | datetime | 更新时间 |
+
+### Blog（博客）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | int | 主键 |
+| author_id | int | 作者 ID（外键） |
+| title | str | 标题 |
+| subtitle | str | 副标题（可选） |
+| content | str | 内容（Markdown 格式） |
+| is_deleted | bool | 软删除标记（默认 False） |
+| deleted_at | datetime | 删除时间 |
+| created_at | datetime | 创建时间 |
+| updated_at | datetime | 更新时间 |
+
+### Comment（评论）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | int | 主键 |
+| blog_id | int | 博客 ID（外键，级联删除） |
+| author_id | int | 评论者 ID（外键） |
+| parent_id | int | 父评论 ID（支持嵌套） |
+| content | str | 评论内容 |
+| depth | int | 嵌套深度 |
+| created_at | datetime | 创建时间 |
+| updated_at | datetime | 更新时间 |
 
 ## API 路由
 
@@ -136,17 +187,17 @@ SuperCenter/
 
 | 方法 | 路由 | 说明 | 认证 |
 |------|------|------|------|
-| POST | /api/upload/avatar | 上传头像 | 是 |
+| POST | /api/upload/avatar | 上传头像（base64 存储） | 是 |
 
 ### 博客 API
 
 | 方法 | 路由 | 说明 | 认证 |
 |------|------|------|------|
-| GET | /api/blogs | 获取博客列表 | 否 |
+| GET | /api/blogs | 获取博客列表（排除已删除） | 否 |
 | POST | /api/blogs | 创建博客 | 是 (blogger) |
 | GET | /api/blogs/{id} | 获取博客详情 | 否 |
 | PUT | /api/blogs/{id} | 更新博客 | 是 (blogger) |
-| DELETE | /api/blogs/{id} | 删除博客 | 是 (blogger) |
+| DELETE | /api/blogs/{id} | 软删除博客 | 是 (blogger) |
 
 ### 评论 API
 
@@ -157,8 +208,6 @@ SuperCenter/
 | DELETE | /api/blogs/{id}/comments/{comment_id} | 删除评论 | 是 |
 
 ## 启动方式
-
-详细命令见 [docs/commands.md](./commands.md)
 
 ### 后端
 
@@ -183,6 +232,7 @@ npm run dev
 - 支持多数据库：可在 `data/` 目录添加新的 `.db` 文件
 - 后端启动时自动创建 SQLite 数据库和表
 - 所有 `.db` 文件已被 `.gitignore` 忽略，不会提交到版本控制
+- 软删除：博客使用软删除机制，删除时设置 `is_deleted=True`，不会真正从数据库删除
 
 ## 开发约定
 

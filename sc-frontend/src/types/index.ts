@@ -33,9 +33,12 @@ export interface Blog {
   title: string;
   subtitle: string | null;
   content: string;
+  category: BlogCategory;
   created_at: string;
   updated_at: string;
 }
+
+export type BlogCategory = "Tech" | "Emotion" | "Diary" | "Question";
 
 export interface BlogListItem {
   id: number;
@@ -43,6 +46,7 @@ export interface BlogListItem {
   subtitle: string | null;
   author_id: number;
   author_username: string;
+  category: BlogCategory;
   created_at: string;
   updated_at: string;
   comment_count: number;

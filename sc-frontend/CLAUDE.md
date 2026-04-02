@@ -19,26 +19,34 @@ src/
 ├── app/                  # App Router 页面
 │   ├── page.tsx          # 首页 (/)
 │   ├── layout.tsx        # 根布局
-│   ├── globals.css       # 全局样式
+│   ├── globals.css       # 全局样式（含呼吸动画）
 │   ├── auth/             # 认证页面
 │   │   ├── login/        # 登录页 (/auth/login)
-│   │   └── register/      # 注册页 (/auth/register)
+│   │   └── register/     # 注册页 (/auth/register)
 │   ├── profile/          # 个人中心 (/profile)
 │   ├── blogs/            # 博客
 │   │   ├── page.tsx      # 博客列表 (/blogs)
-│   │   └── [id]/         # 博客详情 (/blogs/[id])
+│   │   ├── new/
+│   │   │   └── page.tsx  # 创建博客 (/blogs/new)
+│   │   └── [id]/
+│   │       └── page.tsx  # 博客详情 (/blogs/[id])
 │   ├── projects/         # Projects 页 (/projects)
 │   ├── hobbies/          # Hobbies 页 (/hobbies)
 │   └── tools/            # Tools 页 (/tools)
 ├── components/           # React 组件
-│   ├── Navbar.tsx       # 导航栏
-│   ├── FloatingAvatar.tsx # 左下角悬浮头像
-│   ├── PageHeader.tsx    # 页面标题
-│   └── Card.tsx          # 项目卡片
+│   ├── Navbar.tsx        # 导航栏
+│   ├── FloatingAvatar.tsx # 左下角悬浮头像（呼吸动画、右键菜单）
+│   ├── PageHeader.tsx    # 页面标题（可选 title/description/children）
+│   ├── Card.tsx          # 项目卡片
+│   ├── EmptyState.tsx    # 空状态组件（彩虹渐变文字）
+│   ├── Toast.tsx         # 提示组件（顶部居中弹出）
+│   ├── ToastContext.tsx  # Toast 上下文
+│   ├── ConfirmDialog.tsx # 确认弹窗组件
+│   └── Providers.tsx     # 全局 Provider 组合
 ├── contexts/             # React Context
-│   └── AuthContext.tsx   # 认证状态管理
+│   └── AuthContext.tsx    # 认证状态管理
 ├── services/             # API 服务层
-│   └── api.ts           # 后端 API 调用
+│   └── api.ts            # 后端 API 调用
 └── types/               # TypeScript 类型
     └── index.ts         # 类型定义
 ```
@@ -99,6 +107,70 @@ const { user, token, login, register, logout, updateUser } = useAuth();
 - `logout()`: 登出
 - `updateUser({ email, avatar_url })`: 更新个人信息
 
+Token 存储在 localStorage，有效期 7 天。
+
+## 通用组件
+
+### Toast 提示组件
+
+顶部居中弹出，3秒后自动消失。
+
+```tsx
+import { useToast } from "@/components/Toast";
+
+const { showToast } = useToast();
+
+// 使用
+showToast("操作成功", "success");
+showToast("出错了", "error");
+showToast("普通提示", "info");
+```
+
+### ConfirmDialog 确认弹窗
+
+居中显示，带遮罩背景和取消/确认按钮。
+
+```tsx
+import ConfirmDialog from "@/components/ConfirmDialog";
+
+const [showConfirm, setShowConfirm] = useState(false);
+
+<ConfirmDialog
+  open={showConfirm}
+  title="确认删除"
+  message="确定要删除吗？"
+  onConfirm={() => setShowConfirm(false)}
+  onCancel={() => setShowConfirm(false)}
+  confirmText="删除"
+  confirmClassName="bg-red-600 hover:bg-red-700"
+/>
+```
+
+### EmptyState 空状态组件
+
+列表为空时显示，居中大号彩虹渐变文字。
+
+```tsx
+import EmptyState from "@/components/EmptyState";
+
+<EmptyState message="No items yet." />
+```
+
+## 博客功能
+
+### 创建博客 (/blogs/new)
+
+- 仅 blogger 可见
+- 包含标题、副标题（可选）、Markdown 内容编辑器
+- 使用 @uiw/react-md-editor 组件
+
+### 博客详情 (/blogs/[id])
+
+- 显示标题、副标题、Markdown 渲染内容
+- 评论功能：一级评论可展开/缩放
+- 自己发布的评论头像在右侧显示
+- 仅博主可见编辑/删除按钮
+
 ## 开发约定
 
 - 使用 TypeScript
@@ -108,6 +180,7 @@ const { user, token, login, register, logout, updateUser } = useAuth();
 - 新页面放在 `src/app/` 目录
 - 全局组件放在 `src/components/`
 - API 调用通过 `src/services/api.ts`
+- 全局底部留白 32px（`pb-8`）
 
 ## 像素字体
 
@@ -119,5 +192,5 @@ const { user, token, login, register, logout, updateUser } = useAuth();
 
 ## 相关文档
 
-- 项目详细文档：`README.md`
+- 项目详细文档：`docs/SPEC.md`
 - Next.js 官方文档：`node_modules/next/dist/docs/`
