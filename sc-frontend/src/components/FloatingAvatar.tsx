@@ -26,37 +26,43 @@ export default function FloatingAvatar() {
     setShowMenu(!showMenu);
   };
 
+  const avatarClass = "flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 shadow-lg transition-transform hover:scale-105";
+
   if (!user) {
     return (
       <Link
         href="/auth/login"
-        className="fixed bottom-6 left-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 text-neutral-500 shadow-lg transition-transform hover:scale-105 hover:bg-neutral-300"
+        className="fixed bottom-6 left-6 z-50 animate-breathe cursor-pointer"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-6 w-6">
-          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-        </svg>
+        <div className={avatarClass}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-6 w-6 text-neutral-500">
+            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+          </svg>
+        </div>
       </Link>
     );
   }
 
   return (
-    <div className="fixed bottom-6 left-6 z-50" ref={menuRef}>
+    <div className="fixed bottom-6 left-6 z-50 animate-breathe cursor-pointer" ref={menuRef}>
       <Link
         href="/profile"
         onContextMenu={handleContextMenu}
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 shadow-lg transition-transform hover:scale-105"
+        className="block"
       >
-        {user.avatar_url ? (
-          <img
-            src={user.avatar_url}
-            alt={user.username}
-            className="h-full w-full rounded-full object-cover"
-          />
-        ) : (
-          <span className="text-lg font-medium text-neutral-600">
-            {user.username.charAt(0).toUpperCase()}
-          </span>
-        )}
+        <div className={avatarClass}>
+          {user.avatar_url ? (
+            <img
+              src={user.avatar_url}
+              alt={user.username}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            <span className="text-lg font-medium text-neutral-600">
+              {user.username.charAt(0).toUpperCase()}
+            </span>
+          )}
+        </div>
       </Link>
 
       {/* 右键菜单 */}

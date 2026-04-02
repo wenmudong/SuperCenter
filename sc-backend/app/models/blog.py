@@ -12,5 +12,7 @@ class Blog(SQLModel, table=True):
     title: str
     subtitle: Optional[str] = None
     content: str
+    is_deleted: bool = Field(default=False)  # 软删除标记
+    deleted_at: Optional[datetime] = Field(default=None)  # 删除时间
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

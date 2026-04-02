@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select, func
 
 from app.database import engine
-from app.models import User, Blog
+from app.models import User, Blog, Comment
 from app.schemas import BlogCreate, BlogUpdate, BlogResponse, BlogListResponse
 from app.middleware.auth import get_current_user, require_blogger
 
@@ -16,12 +16,13 @@ def list_blogs(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
 ):
-    """获取博客列表"""
+    """获取博客列表（排除已删除）"""
     with Session(engine) as session:
-        # 获取博客及其作者信息
+        # 获取博客及其作者信息（排除已删除）
         blogs = session.exec(
             select(Blog, User.username)
             .join(User, Blog.author_id == User.id)
+            .where(Blog.is_deleted == False)
             .order_by(Blog.created_at.desc())
             .offset(skip)
             .limit(limit)
@@ -31,8 +32,8 @@ def list_blogs(
         for blog, author_username in blogs:
             # 获取评论数
             comment_count = session.exec(
-                select(func.count()).where(Blog.id == blog.id)
-            ).scalar_one()
+                select(func.count()).where(Comment.blog_id == blog.id)
+            ).one()
 
             result.append(BlogListResponse(
                 id=blog.id,
@@ -71,7 +72,9 @@ def create_blog(
 def get_blog(blog_id: int):
     """获取博客详情"""
     with Session(engine) as session:
-        blog = session.get(Blog, blog_id)
+        blog = session.exec(
+            select(Blog).where(Blog.id == blog_id, Blog.is_deleted == False)
+        ).first()
         if not blog:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -120,10 +123,10 @@ def delete_blog(
     blog_id: int,
     current_user: User = Depends(require_blogger),
 ):
-    """删除博客（仅博主）"""
+    """软删除博客（仅博主）"""
     with Session(engine) as session:
         blog = session.get(Blog, blog_id)
-        if not blog:
+        if not blog or blog.is_deleted:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="博客不存在",
@@ -136,6 +139,10 @@ def delete_blog(
                 detail="只能删除自己的博客",
             )
 
-        session.delete(blog)
+        # 软删除：标记 is_deleted 为 True
+        blog.is_deleted = True
+        from datetime import datetime
+        blog.deleted_at = datetime.utcnow()
+        session.add(blog)
         session.commit()
         return {"message": "博客已删除"}

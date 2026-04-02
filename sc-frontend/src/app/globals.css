@@ -30,6 +30,18 @@
   /*"FusionPixel",*/
   --font-sans: "FusionPixel", var(--font-geist-sans);
   --font-mono: "FusionPixel", var(--font-geist-mono);
+
+  /* 呼吸动画 */
+  --animate-breathe: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.10);
+  }
 }
 
 @media (prefers-color-scheme: dark) {

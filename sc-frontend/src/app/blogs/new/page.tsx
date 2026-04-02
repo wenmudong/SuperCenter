@@ -40,7 +40,7 @@ export default function NewBlogPage() {
     setError("");
 
     try {
-      await blogApi.create(token, title.trim(), subtitle.trim() || null, content.trim());
+      await blogApi.create(token, title.trim(), subtitle.trim() || undefined, content.trim());
       router.push("/blogs");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create blog");
@@ -60,11 +60,11 @@ export default function NewBlogPage() {
   return (
     <>
       <PageHeader
-        title="New Blog."
+        // title="New Blog."
         description="Write something interesting."
       />
 
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-3xl pb-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <div className="rounded bg-red-100 p-3 text-sm text-red-600">
