@@ -26,7 +26,7 @@ export default function BlogsPage() {
       <div className="flex items-center justify-between">
         <PageHeader
           title="blogs."
-          description="My thoughts and writings."
+          description="Wenmudong's thoughts and writings."
         />
         {user?.role === "blogger" && blogs.length > 0 && (
           <Link

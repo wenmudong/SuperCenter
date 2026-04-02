@@ -5,7 +5,7 @@ export default function Home() {
     <>
       <PageHeader
         title="Wenmudong."
-        description="Welcome to my personal website!"
+        description="Welcome to WMD's personal website!"
       />
       <div className="text-neutral-400">home page</div>
     </>

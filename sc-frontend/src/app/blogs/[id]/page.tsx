@@ -27,8 +27,6 @@ export default function BlogDetailPage() {
   // 删除评论确认弹窗状态
   const [showDeleteCommentConfirm, setShowDeleteCommentConfirm] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
-  // 展开/缩放的一级评论
-  const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (isNaN(blogId)) {
@@ -114,142 +112,138 @@ export default function BlogDetailPage() {
     return <p className="text-neutral-500">Blog not found</p>;
   }
 
-  const renderNestedComment = (comment: CommentTree, isOwn: boolean) => (
-    <div key={comment.id} className="mt-4">
-      <div className={`rounded-lg border border-neutral-200 bg-white/50 p-4 ${isOwn ? "ml-8" : ""}`}>
-        <div className={`flex items-center gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
-          <div className="h-8 w-8 rounded-full bg-neutral-200 flex items-center justify-center text-sm">
-            {comment.author_username.charAt(0).toUpperCase()}
-          </div>
-          <div className={isOwn ? "text-right" : ""}>
-            <span className="font-medium">{comment.author_username}</span>
-            <span className="ml-2 text-sm text-neutral-500">
-              {new Date(comment.created_at).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-        <p className={`mt-2 text-neutral-700 ${isOwn ? "text-right" : ""}`}>{comment.content}</p>
-        <div className={`mt-2 flex gap-4 ${isOwn ? "justify-end" : ""}`}>
-          {user && (
-            <button
-              onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
-              className="text-sm text-blue-500 hover:underline"
-            >
-              Reply
-            </button>
-          )}
-          {(user?.role === "blogger" || user?.id === comment.author_id) && (
-            <button
-              onClick={() => {
-                setDeletingCommentId(comment.id);
-                setShowDeleteCommentConfirm(true);
-              }}
-              className="text-sm text-red-500 hover:underline"
-            >
-              Delete
-            </button>
-          )}
-        </div>
-
-        {replyTo === comment.id && (
-          <div className="mt-3 flex gap-2">
-            <input
-              type="text"
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              placeholder="Write a reply..."
-              className="flex-1 rounded border border-neutral-300 px-3 py-2 text-sm"
-              onKeyDown={(e) => e.key === "Enter" && handleSubmitReply(comment.id)}
-            />
-            <button
-              onClick={() => handleSubmitReply(comment.id)}
-              className="rounded bg-neutral-900 px-3 py-1 text-sm text-white"
-            >
-              Reply
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* 二级及更深层级都显示为二级样式 */}
-      {comment.replies?.map((reply) => (
-        <div key={reply.id} className="ml-8">
-          {renderNestedComment(reply, user?.id === reply.author_id)}
-        </div>
-      ))}
-    </div>
-  );
-
-  const toggleExpand = (commentId: number) => {
-    setExpandedComments((prev) => {
-      const next = new Set(prev);
-      if (next.has(commentId)) {
-        next.delete(commentId);
-      } else {
-        next.add(commentId);
-      }
-      return next;
-    });
+  // 滚动到指定评论
+  const scrollToComment = (commentId: number) => {
+    const element = document.getElementById(`comment-${commentId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   };
 
-  const renderFirstLevelComment = (comment: CommentTree) => {
+  // 渲染二级评论（只有博主可以回复，直接显示所有回复）
+  const renderSecondLevelComment = (comment: CommentTree, parentComment: CommentTree) => {
     const isOwn = user?.id === comment.author_id;
-    const isExpanded = expandedComments.has(comment.id);
-    const hasReplies = comment.replies && comment.replies.length > 0;
 
     return (
-      <div key={comment.id} className="mt-4">
-        <div className={`rounded-lg border border-neutral-200 bg-white/50 p-4 ${isOwn ? "ml-8" : ""}`}>
-          <div className={`flex items-center gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
-            <div className="h-8 w-8 rounded-full bg-neutral-200 flex items-center justify-center text-sm">
-              {comment.author_username.charAt(0).toUpperCase()}
-            </div>
-            <div className={isOwn ? "text-right" : ""}>
-              <span className="font-medium">{comment.author_username}</span>
-              <span className="ml-2 text-sm text-neutral-500">
-                {new Date(comment.created_at).toLocaleDateString()}
-              </span>
-            </div>
-            {/* 展开/缩放按钮 */}
-            {hasReplies && (
-              <button
-                onClick={() => toggleExpand(comment.id)}
-                className="ml-auto text-xs text-blue-500 hover:underline"
-              >
-                {isExpanded ? "[-] Collapse" : "[+] Expand"}
-              </button>
+      <div key={comment.id} id={`comment-${comment.id}`} className="mt-2 ml-8">
+        <div className={`rounded-lg border border-neutral-200 bg-white/30 p-4 ${isOwn ? "mr-8" : ""}`}>
+          <div className={`flex items-start gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
+            {/* 头像 */}
+            {comment.author_avatar ? (
+              <img
+                src={comment.author_avatar}
+                alt={comment.author_username}
+                className="h-8 w-8 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-neutral-200 flex items-center justify-center text-sm shrink-0">
+                {comment.author_username.charAt(0).toUpperCase()}
+              </div>
             )}
+            {/* 内容 */}
+            <div className={`flex-1 ${isOwn ? "text-right" : ""}`}>
+              <div className={`flex items-center gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
+                <span className="font-medium">{comment.author_username}</span>
+                <span className="text-sm text-neutral-400">reply to {parentComment.author_username}</span>
+                <span className="text-sm text-neutral-500">
+                  {new Date(comment.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <p className={`mt-2 text-neutral-700 ${isOwn ? "text-right" : ""}`}>{comment.content}</p>
+              <div className={`mt-2 flex gap-4 ${isOwn ? "justify-end" : ""}`}>
+                {/* 只有博主可以删除自己的评论 */}
+                {(user?.role === "blogger" || user?.id === comment.author_id) && (
+                  <button
+                    onClick={() => {
+                      setDeletingCommentId(comment.id);
+                      setShowDeleteCommentConfirm(true);
+                    }}
+                    className="text-sm text-red-500 hover:underline"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+            {/* 定位到父评论按钮 */}
+            <button
+              onClick={() => scrollToComment(parentComment.id)}
+              className="text-sm text-neutral-400 hover:text-neutral-600 shrink-0"
+              title="定位到父评论"
+            >
+              ↑
+            </button>
           </div>
-          <p className={`mt-2 text-neutral-700 ${isOwn ? "text-right" : ""}`}>{comment.content}</p>
-          <div className={`mt-2 flex gap-4 ${isOwn ? "justify-end" : ""}`}>
-            {user && (
-              <button
-                onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
-                className="text-sm text-blue-500 hover:underline"
-              >
-                Reply
-              </button>
+        </div>
+      </div>
+    );
+  };
+
+  // 渲染一级评论
+  const renderFirstLevelComment = (comment: CommentTree) => {
+    const isOwn = user?.id === comment.author_id;
+    const hasReplies = comment.replies && comment.replies.length > 0;
+    const isBlogger = user?.role === "blogger";
+
+    return (
+      <div key={comment.id} id={`comment-${comment.id}`} className="mt-4">
+        <div className={`rounded-lg border border-neutral-200 bg-white/50 p-4 ${isOwn ? "ml-8" : ""}`}>
+          <div className={`flex items-start gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
+            {/* 头像 */}
+            {comment.author_avatar ? (
+              <img
+                src={comment.author_avatar}
+                alt={comment.author_username}
+                className="h-8 w-8 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-neutral-200 flex items-center justify-center text-sm shrink-0">
+                {comment.author_username.charAt(0).toUpperCase()}
+              </div>
             )}
-            {(user?.role === "blogger" || user?.id === comment.author_id) && (
-              <button
-                onClick={() => {
-                  setDeletingCommentId(comment.id);
-                  setShowDeleteCommentConfirm(true);
-                }}
-                className="text-sm text-red-500 hover:underline"
-              >
-                Delete
-              </button>
-            )}
+            {/* 内容 */}
+            <div className={`flex-1 ${isOwn ? "text-right" : ""}`}>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{comment.author_username}</span>
+                <span className="text-sm text-neutral-500">
+                  {new Date(comment.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <p className={`mt-2 text-neutral-700 ${isOwn ? "text-right" : ""}`}>{comment.content}</p>
+              <div className={`mt-2 flex gap-4 ${isOwn ? "justify-end" : ""}`}>
+                {/* 只有博主可以回复 */}
+                {isBlogger && (
+                  <button
+                    onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
+                    className="text-sm text-blue-500 hover:underline"
+                  >
+                    Reply
+                  </button>
+                )}
+                {/* 自己或博主可以删除 */}
+                {(user?.role === "blogger" || user?.id === comment.author_id) && (
+                  <button
+                    onClick={() => {
+                      setDeletingCommentId(comment.id);
+                      setShowDeleteCommentConfirm(true);
+                    }}
+                    className="text-sm text-red-500 hover:underline"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
-          {replyTo === comment.id && (
+          {/* 回复输入框（只有博主可见） */}
+          {replyTo === comment.id && isBlogger && (
             <div className="mt-3 flex gap-2">
               <input
                 type="text"
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Write a reply..."
+                placeholder={`Reply to ${comment.author_username}...`}
                 className="flex-1 rounded border border-neutral-300 px-3 py-2 text-sm"
                 onKeyDown={(e) => e.key === "Enter" && handleSubmitReply(comment.id)}
               />
@@ -257,17 +251,15 @@ export default function BlogDetailPage() {
                 onClick={() => handleSubmitReply(comment.id)}
                 className="rounded bg-neutral-900 px-3 py-1 text-sm text-white"
               >
-                Reply
+                Send
               </button>
             </div>
           )}
         </div>
 
-        {/* 展开时显示嵌套评论 */}
-        {isExpanded && comment.replies?.map((reply) => (
-          <div key={reply.id} className="ml-8">
-            {renderNestedComment(reply, user?.id === reply.author_id)}
-          </div>
+        {/* 渲染所有二级评论 */}
+        {hasReplies && comment.replies!.map((reply) => (
+          renderSecondLevelComment(reply, comment)
         ))}
       </div>
     );
