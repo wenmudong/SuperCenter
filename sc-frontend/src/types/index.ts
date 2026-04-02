@@ -31,6 +31,7 @@ export interface Blog {
   id: number;
   author_id: number;
   title: string;
+  subtitle: string | null;
   content: string;
   created_at: string;
   updated_at: string;
@@ -39,6 +40,7 @@ export interface Blog {
 export interface BlogListItem {
   id: number;
   title: string;
+  subtitle: string | null;
   author_id: number;
   author_username: string;
   created_at: string;

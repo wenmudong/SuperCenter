@@ -6,6 +6,7 @@ from datetime import datetime
 class BlogBase(BaseModel):
     """博客基础 schema"""
     title: str = Field(..., min_length=1, max_length=200)
+    subtitle: Optional[str] = Field(None, max_length=500)
     content: str = Field(..., min_length=1)
 
 
@@ -17,6 +18,7 @@ class BlogCreate(BlogBase):
 class BlogUpdate(BaseModel):
     """更新博客请求"""
     title: Optional[str] = Field(None, min_length=1, max_length=200)
+    subtitle: Optional[str] = Field(None, max_length=500)
     content: Optional[str] = Field(None, min_length=1)
 
 
@@ -35,6 +37,7 @@ class BlogListResponse(BaseModel):
     """博客列表响应（包含作者信息）"""
     id: int
     title: str
+    subtitle: Optional[str] = None
     author_id: int
     author_username: str
     created_at: datetime

@@ -10,6 +10,7 @@ class Blog(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     author_id: int = Field(foreign_key="users.id")
     title: str
+    subtitle: Optional[str] = None
     content: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

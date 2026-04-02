@@ -37,6 +37,7 @@ def list_blogs(
             result.append(BlogListResponse(
                 id=blog.id,
                 title=blog.title,
+                subtitle=blog.subtitle,
                 author_id=blog.author_id,
                 author_username=author_username,
                 created_at=blog.created_at,
@@ -57,6 +58,7 @@ def create_blog(
         blog = Blog(
             author_id=current_user.id,
             title=data.title,
+            subtitle=data.subtitle,
             content=data.content,
         )
         session.add(blog)
@@ -102,6 +104,8 @@ def update_blog(
 
         if data.title is not None:
             blog.title = data.title
+        if data.subtitle is not None:
+            blog.subtitle = data.subtitle
         if data.content is not None:
             blog.content = data.content
 
