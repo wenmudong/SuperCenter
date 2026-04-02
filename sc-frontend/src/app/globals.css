@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/* 像素字体配置 */
+@font-face {
+  font-family: "FusionPixel";
+  src: url("/fonts/fusion-pixel-12px-monospaced-latin.ttf.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "FusionPixel";
+  src: url("/fonts/fusion-pixel-12px-monospaced-zh_hans.ttf.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* 像素字体：取消注释下方注释，注释掉 geist-sans 即可切换回原字体 */
+  /*"FusionPixel",*/
+  --font-sans: "FusionPixel", var(--font-geist-sans);
+  --font-mono: "FusionPixel", var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  /* 像素字体特有的平滑处理 */
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+}

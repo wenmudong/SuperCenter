@@ -1,0 +1,83 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## 相关文档
+
+- 项目总览：`docs/SPEC.md`
+- 后端详细文档：`sc-backend/README.md`
+- 前端详细文档：`sc-frontend/README.md`
+- 前端开发规则：`sc-frontend/CLAUDE.md`（Next.js App Router 说明）
+
+## 工作规范
+
+1. **全部使用中文回复**
+2. **每次回复以「wenmudong」开头**
+3. **任务流程**：明确目标 → 建立计划 → 完善计划 → 保存到 `docs/plans/` → 获得批准 → 执行
+4. **不写兼容性代码**，仅支持目标平台
+5. **写代码前先描述方案**，获得批准后再动手；方案需包含改动范围和文件清单
+6. **需求模糊时**，先提问澄清后再写代码
+7. **修改超过3个文件**，先拆成小任务，每任务有明确交付物
+8. **出bug时**，先写最小化可重现步骤，锁定问题后再修复
+9. **每次纠正后反思**，记录错误模式和预防措施
+10. **代码规范**：写代码时添加中文注释；整理到 CLAUDE.md 草稿 → 给你检查 → 获得同意后保存
+11. **架构变更后**优先更新 `docs/SPEC.md` 和 `CLAUDE.md`
+12. **git commit 前**：代码可运行 + 文档已同步 + 无调试代码
+
+## 项目概述
+
+SuperCenter 个人网站，前后端分离架构。
+
+- **后端**：`sc-backend/` — FastAPI + SQLModel + SQLite
+- **前端**：`sc-frontend/` — Next.js (App Router) + TypeScript + Tailwind CSS
+- **文档**：`docs/SPEC.md` — 项目总览（中文为第一语言）
+
+## 常用命令
+
+### 后端
+
+```bash
+cd sc-backend
+uv sync                  # 安装/更新依赖
+uv run uvicorn app.main:app --reload --port 8000   # 启动开发服务器
+```
+
+### 前端
+
+```bash
+cd sc-frontend
+npm install              # 安装依赖
+npm run dev              # 启动开发服务器 (http://localhost:3000)
+npm run build            # 生产构建
+```
+
+## 架构要点
+
+### 前端：Next.js App Router
+
+- **页面路由**：`src/app/` 目录结构映射 URL 路径
+- **Server Component**（默认）：服务端渲染，可直接访问数据库
+- **Client Component**：需添加 `"use client"` 指令才能使用 hooks 和交互
+- **组件开发**：`src/components/` 存放全局组件；业务组件按 `features/` 目录组织
+
+### 后端：FastAPI + SQLModel
+
+- **入口**：`app/main.py` — lifespan 管理（启动创建数据库表）、路由挂载、CORS 配置
+- **配置**：`app/config.py` — `Settings` 类从 `.env` 读取
+- **数据库**：`app/database.py` — 引擎创建，`data/` 目录存放 `.db` 文件
+- **路由**：`app/routers/api.py` — API 端点定义，前缀 `/api`
+- **模型**：`app/models/` — SQLModel 模型定义数据库表结构
+
+### 前后端通信
+
+- 后端：CORS 已配置允许 `localhost:3000`
+- 前端调用后端：`http://localhost:8000/api/*`
+- 健康检查：`GET http://localhost:8000/api/health`
+
+## 开发约定
+
+- **文档语言**：中文为第一语言，英文仅用于代码注释和技术术语
+- **数据库文件**：统一存放在 `sc-backend/data/` 目录，已在 `.gitignore` 中忽略
+- **API 规范**：RESTful 风格
+- **后端初始化**：启动时自动调用 `create_db_and_tables()` 创建表
+

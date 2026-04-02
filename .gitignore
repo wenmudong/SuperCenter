@@ -1,0 +1,28 @@
+# Dependencies
+sc-frontend/node_modules/
+sc-frontend/.next/
+
+# Python
+sc-backend/__pycache__/
+sc-backend/*.pyc
+sc-backend/data/*.db
+sc-backend.venv/
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+*.egg-info/
+dist/
+build/
+
+# Local assets
+素材库/
+.claude/
+
+# Personal files
+docs/个人文件/
