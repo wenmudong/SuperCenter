@@ -61,22 +61,6 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         return user
 
 
-def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))) -> Optional[User]:
-    """获取当前用户（可选，不强制认证）"""
-    if credentials is None:
-        return None
-
-    token = credentials.credentials
-    user_id = verify_token(token)
-
-    if user_id is None:
-        return None
-
-    with Session(engine) as session:
-        user = session.get(User, user_id)
-        return user
-
-
 def require_blogger(current_user: User = Depends(get_current_user)) -> User:
     """要求是博主角色"""
     if current_user.role != "blogger":

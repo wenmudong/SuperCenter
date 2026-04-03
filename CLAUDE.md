@@ -83,4 +83,4 @@ npm run build            # 生产构建
 - **数据库文件**：统一存放在 `sc-backend/data/` 目录，已在 `.gitignore` 中忽略
 - **API 规范**：RESTful 风格
 - **后端初始化**：启动时自动调用 `create_db_and_tables()` 创建表
-- **软删除**：博客使用软删除机制（is_deleted 标记），不会真正从数据库删除
+- **软删除**：所有的删除需要询问是否使用软删除机制（is_deleted 标记），使用则不会真正从数据库删除

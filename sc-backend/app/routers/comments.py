@@ -56,10 +56,10 @@ def list_comments(blog_id: int):
                 detail="博客不存在",
             )
 
-        # 获取所有评论
+        # 获取所有评论（排除已删除）
         comments = session.exec(
             select(Comment)
-            .where(Comment.blog_id == blog_id)
+            .where(Comment.blog_id == blog_id, Comment.is_deleted == False)
             .order_by(Comment.created_at)
         ).all()
 
@@ -98,8 +98,9 @@ def create_comment(
                 detail="博客不存在",
             )
 
-        # 计算评论深度
+        # 计算评论深度（限制最大嵌套深度为 3）
         depth = 0
+        actual_parent_id = data.parent_id
         if data.parent_id:
             parent = session.get(Comment, data.parent_id)
             if not parent:
@@ -107,12 +108,16 @@ def create_comment(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="父评论不存在",
                 )
-            depth = parent.depth + 1
+            if parent.depth >= 3:
+                # 超过最大深度，作为顶级评论
+                actual_parent_id = None
+            else:
+                depth = parent.depth + 1
 
         comment = Comment(
             blog_id=blog_id,
             author_id=current_user.id,
-            parent_id=data.parent_id,
+            parent_id=actual_parent_id,
             content=data.content,
             depth=depth,
         )
@@ -140,7 +145,7 @@ def delete_comment(
     comment_id: int,
     current_user: User = Depends(get_current_user),
 ):
-    """删除评论（博主或评论者本人）"""
+    """删除评论（博主或评论者本人）- 软删除"""
     if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -149,7 +154,7 @@ def delete_comment(
 
     with Session(engine) as session:
         comment = session.get(Comment, comment_id)
-        if not comment or comment.blog_id != blog_id:
+        if not comment or comment.blog_id != blog_id or comment.is_deleted:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="评论不存在",
@@ -162,7 +167,11 @@ def delete_comment(
                 detail="无权删除此评论",
             )
 
-        session.delete(comment)
+        # 软删除
+        from datetime import datetime
+        comment.is_deleted = True
+        comment.deleted_at = datetime.utcnow()
+        session.add(comment)
         session.commit()
         return {"message": "评论已删除"}
 

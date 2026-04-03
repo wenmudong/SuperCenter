@@ -1,4 +1,5 @@
 """博客路由"""
+from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select, func
@@ -145,7 +146,6 @@ def delete_blog(
 
         # 软删除：标记 is_deleted 为 True
         blog.is_deleted = True
-        from datetime import datetime
         blog.deleted_at = datetime.utcnow()
         session.add(blog)
         session.commit()

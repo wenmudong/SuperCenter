@@ -13,5 +13,7 @@ class Comment(SQLModel, table=True):
     parent_id: Optional[int] = Field(default=None, foreign_key="comments.id")
     content: str
     depth: int = Field(default=0)  # 嵌套深度，0=顶级
+    is_deleted: bool = Field(default=False)  # 软删除标记
+    deleted_at: Optional[datetime] = Field(default=None)  # 删除时间
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

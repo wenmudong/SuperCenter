@@ -27,6 +27,7 @@ class CommentResponse(CommentBase):
     author_avatar: Optional[str] = None
     parent_id: Optional[int] = None
     depth: int
+    is_deleted: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -43,6 +44,7 @@ class CommentTreeResponse(CommentBase):
     author_avatar: Optional[str] = None
     parent_id: Optional[int] = None
     depth: int
+    is_deleted: bool = False
     created_at: datetime
     updated_at: datetime
     replies: List["CommentTreeResponse"] = []
