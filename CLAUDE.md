@@ -5,6 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 相关文档
 
 - 项目总览：`docs/SPEC.md`
+- 后端开发规范：`docs/BACKEND_DEV.md` — 后端开发规范（含代码规范、模型规范、路由规范等）
+- 前端开发规范：`docs/FRONTEND_DEV.md` — 前端开发规范（含 Next.js App Router、TypeScript、Tailwind CSS 等）
 - 后端详细文档：`sc-backend/README.md`
 - 前端详细文档：`sc-frontend/README.md`
 - 前端开发规则：`sc-frontend/CLAUDE.md`（Next.js App Router 说明）
