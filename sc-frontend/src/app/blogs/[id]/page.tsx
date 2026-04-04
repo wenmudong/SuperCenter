@@ -3,11 +3,37 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/Toast";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { blogApi, commentApi } from "@/services/api";
-import type { Blog, CommentTree } from "@/types";
+import type { Blog, CommentTree, BlogCategory } from "@/types";
+
+// 时间格式化函数
+function formatTimeAgo(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString();
+}
+
+// 分类配置
+const categoryConfig: Record<BlogCategory, { bg: string; text: string; label: string }> = {
+  Tech: { bg: "bg-blue-400/40", text: "text-blue-900", label: "Tech" },
+  Emotion: { bg: "bg-pink-400/40", text: "text-pink-900", label: "Emotion" },
+  Diary: { bg: "bg-amber-400/40", text: "text-amber-900", label: "Diary" },
+  Question: { bg: "bg-purple-400/40", text: "text-purple-900", label: "Question" },
+};
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -146,7 +172,7 @@ export default function BlogDetailPage() {
                 <span className="font-medium">{comment.author_username}</span>
                 <span className="text-sm text-neutral-400">reply to {parentComment.author_username}</span>
                 <span className="text-sm text-neutral-500">
-                  {new Date(comment.created_at).toLocaleDateString()}
+                  {formatTimeAgo(comment.created_at)}
                 </span>
               </div>
               <p className={`mt-2 text-neutral-700 ${isOwn ? "text-right" : ""}`}>{comment.content}</p>
@@ -206,7 +232,7 @@ export default function BlogDetailPage() {
               <div className="flex items-center gap-2">
                 <span className="font-medium">{comment.author_username}</span>
                 <span className="text-sm text-neutral-500">
-                  {new Date(comment.created_at).toLocaleDateString()}
+                  {formatTimeAgo(comment.created_at)}
                 </span>
               </div>
               <p className={`mt-2 text-neutral-700 ${isOwn ? "text-right" : ""}`}>{comment.content}</p>
@@ -281,15 +307,29 @@ export default function BlogDetailPage() {
             {blog.title}
           </h1>
         </div>
-        <p className="text-sm text-neutral-500">
-          {new Date(blog.created_at).toLocaleDateString()}
-        </p>
+        {/* 博客元信息：分类标签 + 作者 + 时间 */}
+        <div className="flex items-center gap-3 text-sm">
+          <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium shadow-inset-skeuo ${categoryConfig[blog.category]?.bg} ${categoryConfig[blog.category]?.text}`}>
+            {categoryConfig[blog.category]?.label}
+          </span>
+          <span className="text-neutral-400">by {blog.author_username}</span>
+          <span className="text-neutral-300">·</span>
+          <span className="text-neutral-500">{formatTimeAgo(blog.created_at)}</span>
+          <span className="text-neutral-300">·</span>
+          <span className="text-neutral-500">{blog.view_count} views</span>
+        </div>
+        {/* Subtitle */}
+        {blog.subtitle && (
+          <p className="text-lg text-neutral-600">{blog.subtitle}</p>
+        )}
       </div>
 
       <div className="mx-auto max-w-3xl">
         {/* Blog Content */}
         <article className="rounded-lg border border-neutral-200 bg-white/70 p-6">
-          <p className="whitespace-pre-wrap text-neutral-800">{blog.content}</p>
+          <article className="prose max-w-none">
+            <ReactMarkdown>{blog.content}</ReactMarkdown>
+          </article>
 
           {user?.role === "blogger" && (
             <div className="mt-6 border-t border-neutral-200 pt-4">

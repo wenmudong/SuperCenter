@@ -16,18 +16,23 @@ router = APIRouter(prefix="/api/blogs", tags=["博客"])
 def list_blogs(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
+    sort: str = Query("latest", regex="^(latest|popular)$"),
 ):
     """获取博客列表（排除已删除）"""
     with Session(engine) as session:
-        # 获取博客及其作者信息（排除已删除）
-        blogs = session.exec(
+        query = (
             select(Blog, User.username)
             .join(User, Blog.author_id == User.id)
             .where(Blog.is_deleted == False)
-            .order_by(Blog.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-        ).all()
+        )
+
+        # 排序
+        if sort == "popular":
+            query = query.order_by(Blog.view_count.desc())
+        else:  # latest
+            query = query.order_by(Blog.created_at.desc())
+
+        blogs = session.exec(query.offset(skip).limit(limit)).all()
 
         result = []
         for blog, author_username in blogs:
@@ -43,6 +48,7 @@ def list_blogs(
                 author_id=blog.author_id,
                 author_username=author_username,
                 category=blog.category,
+                view_count=blog.view_count,
                 created_at=blog.created_at,
                 updated_at=blog.updated_at,
                 comment_count=comment_count,
@@ -83,7 +89,24 @@ def get_blog(blog_id: int):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="博客不存在",
             )
-        return blog
+        # 增加阅读量
+        blog.view_count += 1
+        session.add(blog)
+        session.commit()
+        # 获取作者信息
+        author = session.get(User, blog.author_id)
+        return BlogResponse(
+            id=blog.id,
+            title=blog.title,
+            subtitle=blog.subtitle,
+            content=blog.content,
+            category=blog.category,
+            author_id=blog.author_id,
+            author_username=author.username if author else "Unknown",
+            view_count=blog.view_count,
+            created_at=blog.created_at,
+            updated_at=blog.updated_at,
+        )
 
 
 @router.put("/{blog_id}", response_model=BlogResponse)

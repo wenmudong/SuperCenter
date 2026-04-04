@@ -30,6 +30,8 @@ class BlogResponse(BlogBase):
     """博客响应"""
     id: int
     author_id: int
+    author_username: str  # 作者用户名
+    view_count: int = 0  # 阅读量
     created_at: datetime
     updated_at: datetime
 
@@ -45,6 +47,7 @@ class BlogListResponse(BaseModel):
     author_id: int
     author_username: str
     category: str = "Diary"
+    view_count: int = 0  # 阅读量
     created_at: datetime
     updated_at: datetime
     comment_count: int = 0

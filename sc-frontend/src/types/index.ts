@@ -30,10 +30,12 @@ export interface Token {
 export interface Blog {
   id: number;
   author_id: number;
+  author_username: string;  // 作者用户名
   title: string;
   subtitle: string | null;
   content: string;
   category: BlogCategory;
+  view_count: number;  // 阅读量
   created_at: string;
   updated_at: string;
 }
@@ -47,6 +49,7 @@ export interface BlogListItem {
   author_id: number;
   author_username: string;
   category: BlogCategory;
+  view_count: number;  // 阅读量
   created_at: string;
   updated_at: string;
   comment_count: number;
