@@ -12,6 +12,7 @@ from app.routers.users import router as users_router
 from app.routers.upload import router as upload_router
 from app.routers.blogs import router as blogs_router
 from app.routers.comments import router as comments_router
+from app.routers.admin import router as admin_router
 
 
 @asynccontextmanager
@@ -38,6 +39,7 @@ app.include_router(users_router)
 app.include_router(upload_router)
 app.include_router(blogs_router)
 app.include_router(comments_router)
+app.include_router(admin_router)
 
 # 挂载静态文件目录（用于访问上传的头像）
 uploads_path = Path(settings.upload_dir)

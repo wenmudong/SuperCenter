@@ -73,3 +73,12 @@ export interface Comment {
 export interface CommentTree extends Comment {
   replies: CommentTree[];
 }
+
+// 系统配置类型
+export interface SystemConfig {
+  id: number;
+  key: string;
+  value: string;
+  description: string | null;
+  updated_at: string;
+}

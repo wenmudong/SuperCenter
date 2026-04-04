@@ -72,6 +72,14 @@ export default function FloatingAvatar() {
             <p className="font-medium text-neutral-900">{user.username}</p>
             <p className="text-xs text-neutral-500">{user.role}</p>
           </div>
+          {user.role === "admin" && (
+            <Link
+              href="/admin/config"
+              className="block px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50"
+            >
+              系统配置
+            </Link>
+          )}
           <Link
             href="/profile"
             className="block px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50"

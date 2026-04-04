@@ -1,5 +1,5 @@
 // 后端 API 服务层
-import type { User, Token, Blog, BlogListItem, CommentTree } from "@/types";
+import type { User, Token, Blog, BlogListItem, CommentTree, SystemConfig } from "@/types";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -139,4 +139,33 @@ export const uploadApi = {
 
     return res.json();
   },
+};
+
+// Admin API
+export const adminApi = {
+  getAllConfigs: (token: string) =>
+    request<{ configs: SystemConfig[]; total: number }>("/admin/config", { token }),
+
+  getConfig: (token: string, key: string) =>
+    request<SystemConfig>(`/admin/config/${key}`, { token }),
+
+  createConfig: (token: string, data: { key: string; value: string; description?: string }) =>
+    request<SystemConfig>("/admin/config", {
+      method: "POST",
+      body: data,
+      token,
+    }),
+
+  updateConfig: (token: string, key: string, data: { value: string; description?: string }) =>
+    request<SystemConfig>(`/admin/config/${key}`, {
+      method: "PUT",
+      body: data,
+      token,
+    }),
+
+  deleteConfig: (token: string, key: string) =>
+    request<void>(`/admin/config/${key}`, {
+      method: "DELETE",
+      token,
+    }),
 };
