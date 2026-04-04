@@ -51,6 +51,8 @@
 | `wenmudong` | `wenmudong.hwd` | blogger |
 | `admin` | `admin.hwd` | admin |
 
+> ⚠️ 部署时需修改为自定义账号密码
+
 ## 项目结构
 
 ```

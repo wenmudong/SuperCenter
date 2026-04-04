@@ -114,6 +114,8 @@ public/             # 静态文件
 | `wenmudong` | `wenmudong.hwd` | blogger |
 | `admin` | `admin.hwd` | admin |
 
+> ⚠️ 部署时需修改为自定义账号密码
+
 ## API 路由
 
 ### 认证 API

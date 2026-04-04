@@ -473,6 +473,8 @@ python -m scripts.migrate_add_is_deleted
 | `wenmudong` | `wenmudong.hwd` | blogger |
 | `admin` | `admin.hwd` | admin |
 
+> ⚠️ 部署时需修改为自定义账号密码
+
 ### 13.2 API 访问
 
 - API 地址：http://localhost:8000/api
