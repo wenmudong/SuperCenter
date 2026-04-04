@@ -21,13 +21,16 @@ export default function Navbar() {
   const activeIndex = navItems.findIndex((item) => item.href === pathname);
 
   useEffect(() => {
-    const activeItem = itemRefs.current[activeIndex];
-    if (activeItem) {
-      setIndicatorStyle({
-        width: activeItem.offsetWidth,
-        transform: `translate(${activeItem.offsetLeft}px)`,
-      });
-    }
+    // 等待字体加载完成后再计算指示器位置
+    document.fonts.ready.then(() => {
+      const activeItem = itemRefs.current[activeIndex];
+      if (activeItem) {
+        setIndicatorStyle({
+          width: activeItem.offsetWidth,
+          transform: `translate(${activeItem.offsetLeft}px)`,
+        });
+      }
+    });
   }, [activeIndex]);
 
   return (
