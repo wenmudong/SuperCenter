@@ -79,6 +79,7 @@ export default function Loading({
           alt="loading"
           className={`${currentAnimation} overflow-hidden`}
           style={imageStyle}
+          suppressHydrationWarning
         />
       ) : (
         <pre
