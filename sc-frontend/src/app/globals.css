@@ -44,6 +44,69 @@
   }
 }
 
+/* 像素旋转动画 */
+@keyframes pixel-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-pixel-spin {
+  animation: pixel-spin 1s steps(8) infinite;
+}
+
+/* 史莱姆跳动动画 */
+@keyframes slime-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-slime-bounce {
+  animation: slime-bounce 0.6s ease-in-out infinite;
+}
+
+/* 腊肠狗拉长动画 */
+@keyframes dachshund-stretch {
+  0%, 100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.4);
+  }
+}
+
+.animate-dachshund-stretch {
+  animation: dachshund-stretch 0.8s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* 心脏跳动动画 */
+@keyframes heart-beat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.15);
+  }
+  30% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.1);
+  }
+  60% {
+    transform: scale(1);
+  }
+}
+
+.animate-heart-beat {
+  animation: heart-beat 1.2s ease-in-out infinite;
+  display: inline-block;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
